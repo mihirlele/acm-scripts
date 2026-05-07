@@ -267,9 +267,20 @@ def validate_secrets(cluster, ns):
 
     kubeconfig = oc_get_by_label("secret", ns, "hive.openshift.io/secret-type=kubeconfig")
     kubeadmin = oc_get_by_label("secret", ns, "hive.openshift.io/secret-type=kubeadmincreds")
-    pullsecret = oc_get_by_label(
-        "secret", ns, "app.kubernetes.io/instance=clusters,agent-install.openshift.io/watch=true"
+#    pullsecret = oc_get_by_label(
+#        "secret", ns, "app.kubernetes.io/instance=clusters,agent-install.openshift.io/watch=true"
+#    )
+
+    pullsecret = []
+
+    watch_secrets = oc_get_by_label(
+        "secret", ns, "agent-install.openshift.io/watch=true"
     )
+
+    for sec in watch_secrets:
+        sdata = oc_get("secret", sec, ns)
+        if sdata.get("type") == "kubernetes.io/dockerconfigjson":
+            pullsecret.append(sec)
 
     if not kubeconfig:
         print("ERROR: No kubeconfig secret found", file=sys.stderr)
